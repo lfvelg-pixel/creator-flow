@@ -21,6 +21,7 @@ const fromEntry = (row) => ({
   entryType: row.entry_type,
   platforms: row.platforms || ['youtube', 'tiktok', 'instagram'],
   performance: row.performance || {},
+  editingChecklist: row.editing_checklist || { scriptReady: false, ingredients: false, voiceRecorded: false },
   createdAt: row.created_at,
 })
 
@@ -111,8 +112,9 @@ const useStore = create((set, get) => ({
     if (updates.title       !== undefined) dbUpdates.title       = updates.title
     if (updates.description !== undefined) dbUpdates.description = updates.description
     if (updates.date        !== undefined) dbUpdates.date        = updates.date
-    if (updates.entryType   !== undefined) dbUpdates.entry_type  = updates.entryType
-    if (updates.platforms   !== undefined) dbUpdates.platforms   = updates.platforms
+    if (updates.entryType        !== undefined) dbUpdates.entry_type        = updates.entryType
+    if (updates.platforms        !== undefined) dbUpdates.platforms         = updates.platforms
+    if (updates.editingChecklist !== undefined) dbUpdates.editing_checklist = updates.editingChecklist
 
     // Optimistic
     set((s) => ({ entries: s.entries.map((e) => (e.id === id ? { ...e, ...updates } : e)) }))

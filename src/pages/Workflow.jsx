@@ -25,8 +25,62 @@ const COL_STYLES = {
   live:      { header: 'bg-green-50  border-green-200',   dot: 'bg-green-400',  count: 'bg-green-100  text-green-700'   },
 }
 
+// ── Editing checklist ──────────────────────────────────────────────────────
+const CHECKLIST_ITEMS = [
+  { id: 'scriptReady',   label: 'Script Ready',    emoji: '📝' },
+  { id: 'ingredients',   label: 'Ingredients',     emoji: '🛒' },
+  { id: 'voiceRecorded', label: 'Voice Recorded',  emoji: '🎙️' },
+]
+
+function EditingChecklist({ checklist, onChange }) {
+  const cl = checklist || { scriptReady: false, ingredients: false, voiceRecorded: false }
+  const doneCount = CHECKLIST_ITEMS.filter((i) => cl[i.id]).length
+
+  return (
+    <div className="flex flex-col gap-2 mt-1">
+      {/* Progress bar */}
+      <div className="flex items-center justify-between mb-0.5">
+        <span className="text-xs font-black text-gray-400 uppercase tracking-wider">Checklist</span>
+        <span className="text-xs font-black text-blue-500">{doneCount}/{CHECKLIST_ITEMS.length}</span>
+      </div>
+      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-blue-400 rounded-full transition-all duration-300"
+          style={{ width: `${(doneCount / CHECKLIST_ITEMS.length) * 100}%` }}
+        />
+      </div>
+
+      {/* Items */}
+      {CHECKLIST_ITEMS.map((item) => (
+        <button
+          key={item.id}
+          onClick={() => onChange({ ...cl, [item.id]: !cl[item.id] })}
+          className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl border-2 font-bold text-sm
+                      text-left transition-all duration-150
+            ${cl[item.id]
+              ? 'bg-blue-50 border-blue-300 text-blue-700'
+              : 'bg-warm-gray border-gray-100 text-gray-500 hover:border-blue-200 hover:bg-blue-50/40'
+            }`}
+        >
+          {/* Thick checkbox */}
+          <div className={`w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-all
+            ${cl[item.id] ? 'bg-blue-500 border-blue-500' : 'border-gray-300 bg-white'}`}
+          >
+            {cl[item.id] && (
+              <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+                <path d="M1 4L4 7.5L10 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </div>
+          <span>{item.emoji} {item.label}</span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
 // ── Workflow card ──────────────────────────────────────────────────────────
-function WorkflowCard({ entry, columnId, onAdvance, onPublish, onRestore, onDelete, onTrack, onEdit }) {
+function WorkflowCard({ entry, columnId, onAdvance, onPublish, onRestore, onDelete, onTrack, onEdit, onChecklistChange }) {
   const isLive      = entry.entryType === 'live'
   const isPublished = entry.entryType === 'published'
   const delayed     = columnId === 'delayed'
@@ -68,6 +122,14 @@ function WorkflowCard({ entry, columnId, onAdvance, onPublish, onRestore, onDele
         <p className="text-xs text-gray-400 font-semibold leading-relaxed line-clamp-2">
           {entry.description}
         </p>
+      )}
+
+      {/* Editing checklist */}
+      {columnId === 'editing' && (
+        <EditingChecklist
+          checklist={entry.editingChecklist}
+          onChange={onChecklistChange}
+        />
       )}
 
       {/* Live: performance stats summary */}
@@ -406,6 +468,7 @@ export default function Workflow() {
                   onDelete={() => deleteEntry(entry.id)}
                   onTrack={(platform) => setModal({ type: 'perf', entry, platform })}
                   onEdit={() => setModal({ type: 'edit', entry })}
+                  onChecklistChange={(cl) => updateEntry(entry.id, { editingChecklist: cl })}
                 />
               ))}
             </Column>
