@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Trash2, ArrowRight, BarChart2, RotateCcw } from 'lucide-react'
+import { Trash2, ArrowRight, BarChart2, RotateCcw, X } from 'lucide-react'
 import useStore from '../store/useStore'
 import {
   ENTRY_TYPES,
@@ -220,7 +220,12 @@ export default function Workflow() {
   const advanceStage = (entry) => {
     const idx = STAGE_ORDER.indexOf(entry.entryType)
     if (idx < STAGE_ORDER.length - 1) {
-      updateEntry(entry.id, { entryType: STAGE_ORDER[idx + 1] })
+      const nextStage = STAGE_ORDER[idx + 1]
+      updateEntry(entry.id, { entryType: nextStage })
+      if (nextStage === 'live') {
+        // Auto-open the Go Live modal so user can immediately track performance
+        setModal({ type: 'golive', entry: { ...entry, entryType: 'live' } })
+      }
     }
   }
 
@@ -299,6 +304,85 @@ export default function Workflow() {
           onClose={() => setModal(null)}
         />
       )}
+      {modal?.type === 'golive' && (
+        <GoLiveModal
+          entry={modal.entry}
+          onTrack={(platform) => setModal({ type: 'perf', entry: modal.entry, platform })}
+          onClose={() => setModal(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+// ── Go Live celebration modal ───────────────────────────────────────────────
+function GoLiveModal({ entry, onTrack, onClose }) {
+  return (
+    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal-box">
+        <div className="p-8 text-center">
+          {/* Close */}
+          <button onClick={onClose} className="absolute top-4 right-4 btn-ghost p-2">
+            <X size={18} />
+          </button>
+
+          {/* Celebration */}
+          <div className="text-6xl mb-3">🚀</div>
+          <h2 className="text-2xl font-black text-gray-900 mb-1">It's Live!</h2>
+          <p className="text-gray-500 font-semibold mb-2 text-sm">
+            "{entry.title}"
+          </p>
+          <p className="text-gray-400 font-semibold mb-8 text-sm">
+            Track how it performed on each platform below.
+          </p>
+
+          {/* Platform buttons */}
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => onTrack('youtube')}
+              className="flex items-center gap-4 w-full p-4 rounded-2xl border-2 border-red-100
+                         bg-red-50 hover:bg-red-100 hover:border-red-300 transition-all group"
+            >
+              <span className="text-2xl">▶️</span>
+              <div className="text-left flex-1">
+                <p className="font-black text-red-700">YouTube</p>
+                <p className="text-xs text-red-400 font-semibold">Views, likes, comments, shares, subscribers</p>
+              </div>
+              <ArrowRight size={18} className="text-red-300 group-hover:text-red-500 transition-colors" />
+            </button>
+
+            <button
+              onClick={() => onTrack('tiktok')}
+              className="flex items-center gap-4 w-full p-4 rounded-2xl border-2 border-pink-100
+                         bg-pink-50 hover:bg-pink-100 hover:border-pink-300 transition-all group"
+            >
+              <span className="text-2xl">🎵</span>
+              <div className="text-left flex-1">
+                <p className="font-black text-pink-700">TikTok</p>
+                <p className="text-xs text-pink-400 font-semibold">Views, likes, comments, shares, followers</p>
+              </div>
+              <ArrowRight size={18} className="text-pink-300 group-hover:text-pink-500 transition-colors" />
+            </button>
+
+            <button
+              onClick={() => onTrack('instagram')}
+              className="flex items-center gap-4 w-full p-4 rounded-2xl border-2 border-purple-100
+                         bg-purple-50 hover:bg-purple-100 hover:border-purple-300 transition-all group"
+            >
+              <span className="text-2xl">📸</span>
+              <div className="text-left flex-1">
+                <p className="font-black text-purple-700">Instagram</p>
+                <p className="text-xs text-purple-400 font-semibold">Views, likes, comments, shares, followers</p>
+              </div>
+              <ArrowRight size={18} className="text-purple-300 group-hover:text-purple-500 transition-colors" />
+            </button>
+          </div>
+
+          <button onClick={onClose} className="btn-ghost w-full justify-center mt-4 text-sm">
+            I'll track this later
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

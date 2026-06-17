@@ -31,13 +31,15 @@ const useStore = create((set, get) => ({
 
   // ── Bootstrap ──────────────────────────────────────────────────
   init: async () => {
-    const [{ data: ideas }, { data: entries }] = await Promise.all([
+    const [ideasRes, entriesRes] = await Promise.all([
       supabase.from('ideas').select('*').order('created_at', { ascending: false }),
       supabase.from('entries').select('*').order('created_at', { ascending: false }),
     ])
+    if (ideasRes.error)   console.error('CreatorFlow – fetch ideas failed:',   ideasRes.error)
+    if (entriesRes.error) console.error('CreatorFlow – fetch entries failed:', entriesRes.error)
     set({
-      ideas: (ideas || []).map(fromIdea),
-      entries: (entries || []).map(fromEntry),
+      ideas:   (ideasRes.data   || []).map(fromIdea),
+      entries: (entriesRes.data || []).map(fromEntry),
       loading: false,
     })
   },
@@ -55,8 +57,9 @@ const useStore = create((set, get) => ({
       }])
       .select()
       .single()
-      .then(({ data }) => {
-        if (data) set((s) => ({ ideas: [fromIdea(data), ...s.ideas] }))
+      .then(({ data, error }) => {
+        if (error) console.error('CreatorFlow – add idea failed:', error)
+        if (data)  set((s) => ({ ideas: [fromIdea(data), ...s.ideas] }))
       })
   },
 
@@ -97,8 +100,9 @@ const useStore = create((set, get) => ({
       }])
       .select()
       .single()
-      .then(({ data }) => {
-        if (data) set((s) => ({ entries: [fromEntry(data), ...s.entries] }))
+      .then(({ data, error }) => {
+        if (error) console.error('CreatorFlow – add entry failed:', error)
+        if (data)  set((s) => ({ entries: [fromEntry(data), ...s.entries] }))
       })
   },
 
