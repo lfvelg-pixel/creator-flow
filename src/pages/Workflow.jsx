@@ -305,10 +305,173 @@ function GoLiveModal({ entry, onTrack, onClose }) {
   )
 }
 
+// ── Editing dashboard view ─────────────────────────────────────────────────
+function EditingView({ entries, updateEntry, onAdvanceToScheduled }) {
+  const editingEntries = entries.filter((e) => e.entryType === 'editing')
+
+  const getCl   = (e) => e.editingChecklist || { scriptReady: false, ingredients: false, voiceRecorded: false }
+  const done    = (e) => CHECKLIST_ITEMS.filter((i) => getCl(e)[i.id]).length
+  const isReady = (e) => done(e) === CHECKLIST_ITEMS.length
+
+  const readyCount   = editingEntries.filter(isReady).length
+  const missingStats = CHECKLIST_ITEMS.map((item) => ({
+    ...item,
+    missing: editingEntries.filter((e) => !getCl(e)[item.id]).length,
+  }))
+
+  if (editingEntries.length === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">✂️</div>
+          <h3 className="text-xl font-black text-gray-700 mb-2">Nothing in editing yet</h3>
+          <p className="text-gray-400 font-semibold">Move entries to Editing from the Pipeline view.</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-8">
+      {/* Summary bar */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="card text-center col-span-1">
+          <div className="text-3xl font-black text-blue-500">{editingEntries.length}</div>
+          <div className="text-xs font-bold text-gray-400 mt-1">In Editing</div>
+        </div>
+        <div className="card text-center col-span-1">
+          <div className="text-3xl font-black text-green-500">{readyCount}</div>
+          <div className="text-xs font-bold text-gray-400 mt-1">✅ Fully Ready</div>
+        </div>
+        {missingStats.map((item) => (
+          <div
+            key={item.id}
+            className={`card text-center col-span-1 transition-colors
+              ${item.missing > 0 ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}`}
+          >
+            <div className={`text-3xl font-black ${item.missing > 0 ? 'text-red-500' : 'text-green-500'}`}>
+              {item.missing}
+            </div>
+            <div className="text-xs font-bold text-gray-400 mt-1">
+              {item.emoji} Missing {item.label}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Cards grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {editingEntries.map((entry) => {
+          const cl    = getCl(entry)
+          const pct   = (done(entry) / CHECKLIST_ITEMS.length) * 100
+          const ready = isReady(entry)
+
+          let dateLabel = ''
+          try { dateLabel = format(parseISO(entry.date), 'MMM d') } catch {}
+
+          const progressColor = pct === 100
+            ? 'bg-green-400' : pct >= 66
+            ? 'bg-yellow-400' : pct >= 33
+            ? 'bg-orange-400'
+            : 'bg-red-400'
+
+          return (
+            <div
+              key={entry.id}
+              className={`card flex flex-col gap-4 border-2 transition-all hover:shadow-card-hover
+                ${ready ? 'border-green-200 bg-green-50/20' : 'border-coral-100'}`}
+            >
+              {/* Title */}
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <h3 className="font-black text-gray-900 text-base leading-snug">{entry.title}</h3>
+                  {dateLabel && (
+                    <p className="text-xs text-gray-400 font-semibold mt-0.5">{dateLabel}</p>
+                  )}
+                </div>
+                {ready && (
+                  <span className="bg-green-100 text-green-700 text-xs font-black px-2.5 py-1 rounded-lg flex-shrink-0">
+                    ✅ Ready!
+                  </span>
+                )}
+              </div>
+
+              {/* Progress bar */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-black text-gray-400 uppercase tracking-wider">Progress</span>
+                  <span className="text-xs font-black text-blue-500">{done(entry)}/{CHECKLIST_ITEMS.length}</span>
+                </div>
+                <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${progressColor}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Checklist items */}
+              <div className="flex flex-col gap-2">
+                {CHECKLIST_ITEMS.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() =>
+                      updateEntry(entry.id, { editingChecklist: { ...cl, [item.id]: !cl[item.id] } })
+                    }
+                    className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl border-2 font-bold text-sm
+                                text-left transition-all duration-150
+                      ${cl[item.id]
+                        ? 'bg-blue-50 border-blue-300 text-blue-700'
+                        : 'bg-warm-gray border-gray-100 text-gray-500 hover:border-blue-200 hover:bg-blue-50/40'
+                      }`}
+                  >
+                    {/* Thick checkbox */}
+                    <div
+                      className={`w-6 h-6 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-all
+                        ${cl[item.id] ? 'bg-blue-500 border-blue-500' : 'border-gray-300 bg-white'}`}
+                    >
+                      {cl[item.id] && (
+                        <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+                          <path d="M1 5L4.5 8.5L11 1.5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                    </div>
+                    <span className="flex-1">{item.emoji} {item.label}</span>
+                    {!cl[item.id] && (
+                      <span className="text-xs font-bold text-red-400 bg-red-50 px-2 py-0.5 rounded-lg">
+                        Missing
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* CTA */}
+              {ready ? (
+                <button
+                  onClick={() => onAdvanceToScheduled(entry)}
+                  className="btn-primary justify-center w-full mt-auto"
+                >
+                  Move to 📅 Scheduled <ArrowRight size={15} />
+                </button>
+              ) : (
+                <p className="text-center text-xs font-bold text-gray-400 mt-auto pt-1">
+                  {CHECKLIST_ITEMS.length - done(entry)} item{CHECKLIST_ITEMS.length - done(entry) !== 1 ? 's' : ''} still missing
+                </p>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ── Filter tabs ────────────────────────────────────────────────────────────
 const FILTERS = [
   { id: 'all',      label: 'All',      emoji: '📋' },
   { id: 'pipeline', label: 'Pipeline', emoji: '🔄' },
+  { id: 'editing',  label: 'Editing',  emoji: '✂️' },
   { id: 'live',     label: 'Live',     emoji: '🚀' },
 ]
 
@@ -444,7 +607,7 @@ export default function Workflow() {
         ))}
       </div>
 
-      {/* Kanban board */}
+      {/* Views */}
       {entries.length === 0 ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
@@ -453,6 +616,12 @@ export default function Workflow() {
             <p className="text-gray-400 font-semibold">Add entries from the Calendar or Ideas pages to get started.</p>
           </div>
         </div>
+      ) : filter === 'editing' ? (
+        <EditingView
+          entries={entries}
+          updateEntry={updateEntry}
+          onAdvanceToScheduled={(entry) => updateEntry(entry.id, { entryType: 'scheduled' })}
+        />
       ) : (
         <div className={`flex gap-4 pb-4 ${filter === 'live' ? 'flex-col max-w-2xl' : 'overflow-x-auto'}`}>
           {visibleColumns.map((col) => (
