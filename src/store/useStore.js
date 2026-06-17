@@ -128,6 +128,31 @@ const useStore = create((set, get) => ({
     supabase.from('entries').delete().eq('id', id)
   },
 
+  // Publish an entry: marks it published AND creates a live copy for performance tracking
+  publishEntry: (entry, onLiveCreated) => {
+    supabase
+      .from('entries')
+      .insert([{
+        idea_id:     entry.ideaId || null,
+        title:       entry.title,
+        description: entry.description || '',
+        date:        entry.date,
+        entry_type:  'live',
+        platforms:   ['youtube', 'tiktok', 'instagram'],
+        performance: {},
+      }])
+      .select()
+      .single()
+      .then(({ data, error }) => {
+        if (error) console.error('CreatorFlow – create live copy failed:', error)
+        if (data) {
+          const liveEntry = fromEntry(data)
+          set((s) => ({ entries: [liveEntry, ...s.entries] }))
+          if (onLiveCreated) onLiveCreated(liveEntry)
+        }
+      })
+  },
+
   moveEntry: (id, newDate) => {
     set((s) => ({ entries: s.entries.map((e) => (e.id === id ? { ...e, date: newDate } : e)) }))
     supabase.from('entries').update({ date: newDate }).eq('id', id)

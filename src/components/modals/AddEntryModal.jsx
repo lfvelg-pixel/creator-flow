@@ -3,6 +3,9 @@ import { X } from 'lucide-react'
 import useStore from '../../store/useStore'
 import { ENTRY_TYPES, format, parseISO } from '../../utils/dateUtils'
 
+// 'live' is auto-created when published — hide it from manual selection
+const SELECTABLE_TYPES = ENTRY_TYPES.filter((t) => t.id !== 'live')
+
 export default function AddEntryModal({ date, entry, onClose }) {
   const { addEntry, updateEntry } = useStore()
   const isEdit = Boolean(entry)
@@ -90,7 +93,7 @@ export default function AddEntryModal({ date, entry, onClose }) {
           <div>
             <label className="label">Stage</label>
             <div className="grid grid-cols-3 gap-2">
-              {ENTRY_TYPES.map((t) => (
+              {SELECTABLE_TYPES.map((t) => (
                 <button
                   type="button"
                   key={t.id}

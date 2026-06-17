@@ -63,12 +63,14 @@ export const PLATFORMS = [
 export const ENTRY_TYPES = [
   { id: 'idea',      label: 'Idea',      emoji: '💡', color: 'bg-yellow-100 text-yellow-700' },
   { id: 'recording', label: 'Recording', emoji: '🎬', color: 'bg-purple-100 text-purple-700' },
-  { id: 'editing',   label: 'Editing',   emoji: '✂️', color: 'bg-blue-100 text-blue-700'   },
+  { id: 'editing',   label: 'Editing',   emoji: '✂️', color: 'bg-blue-100 text-blue-700'    },
   { id: 'scheduled', label: 'Scheduled', emoji: '📅', color: 'bg-orange-100 text-orange-700' },
+  { id: 'published', label: 'Published', emoji: '📢', color: 'bg-teal-100 text-teal-700'    },
   { id: 'live',      label: 'Live',      emoji: '🚀', color: 'bg-green-100 text-green-700'  },
 ]
 
-export const STAGE_ORDER = ['idea', 'recording', 'editing', 'scheduled', 'live']
+// Pipeline stages only — 'live' is auto-created when published, not manually advanced to
+export const STAGE_ORDER = ['idea', 'recording', 'editing', 'scheduled', 'published']
 
 export function isDelayed(entry) {
   if (entry.entryType !== 'idea' && entry.entryType !== 'recording') return false
