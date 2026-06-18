@@ -47,18 +47,23 @@ const useStore = create((set, get) => ({
 
   // ── Bootstrap ──────────────────────────────────────────────────
   init: async () => {
-    const [ideasRes, entriesRes] = await Promise.all([
-      supabase.from('ideas').select('*').order('created_at', { ascending: false }),
-      supabase.from('entries').select('*').order('created_at', { ascending: false }),
-    ])
-    if (ideasRes.error)   console.error('CreatorFlow – fetch ideas failed:',   ideasRes.error)
-    if (entriesRes.error) console.error('CreatorFlow – fetch entries failed:', entriesRes.error)
-    set({
-      ideas:      (ideasRes.data   || []).map(fromIdea),
-      entries:    (entriesRes.data || []).map(fromEntry),
-      loading:    false,
-      syncStatus: (ideasRes.error || entriesRes.error) ? 'error' : 'saved',
-    })
+    try {
+      const [ideasRes, entriesRes] = await Promise.all([
+        supabase.from('ideas').select('*').order('created_at', { ascending: false }),
+        supabase.from('entries').select('*').order('created_at', { ascending: false }),
+      ])
+      if (ideasRes.error)   console.error('CreatorFlow – fetch ideas failed:',   ideasRes.error)
+      if (entriesRes.error) console.error('CreatorFlow – fetch entries failed:', entriesRes.error)
+      set({
+        ideas:      (ideasRes.data   || []).map(fromIdea),
+        entries:    (entriesRes.data || []).map(fromEntry),
+        loading:    false,
+        syncStatus: (ideasRes.error || entriesRes.error) ? 'error' : 'saved',
+      })
+    } catch (err) {
+      console.error('CreatorFlow – init failed:', err)
+      set({ loading: false, syncStatus: 'error' })
+    }
   },
 
   // ── Ideas ──────────────────────────────────────────────────────
