@@ -3,8 +3,7 @@ import { X } from 'lucide-react'
 import useStore from '../../store/useStore'
 import { ENTRY_TYPES, format, parseISO } from '../../utils/dateUtils'
 
-// 'live' is auto-created when published — hide it from manual selection
-const SELECTABLE_TYPES = ENTRY_TYPES.filter((t) => t.id !== 'live')
+const SELECTABLE_TYPES = ENTRY_TYPES
 
 export default function AddEntryModal({ date, entry, onClose }) {
   const { addEntry, updateEntry } = useStore()
