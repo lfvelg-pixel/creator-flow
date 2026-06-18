@@ -30,6 +30,7 @@ const CHECKLIST_ITEMS = [
   { id: 'scriptReady',   label: 'Script Ready',    emoji: '📝' },
   { id: 'ingredients',   label: 'Ingredients',     emoji: '🛒' },
   { id: 'voiceRecorded', label: 'Voice Recorded',  emoji: '🎙️' },
+  { id: 'captions',      label: 'Captions',        emoji: '💬' },
 ]
 
 function EditingChecklist({ checklist, onChange }) {

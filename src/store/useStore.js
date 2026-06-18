@@ -21,7 +21,7 @@ const fromEntry = (row) => ({
   entryType: row.entry_type,
   platforms: row.platforms || ['youtube', 'tiktok', 'instagram'],
   performance: row.performance || {},
-  editingChecklist: row.editing_checklist || { scriptReady: false, ingredients: false, voiceRecorded: false },
+  editingChecklist: row.editing_checklist || { scriptReady: false, ingredients: false, voiceRecorded: false, captions: false },
   createdAt: row.created_at,
 })
 
