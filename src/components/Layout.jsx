@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
-import { Home, Calendar, Lightbulb, Zap, Layers } from 'lucide-react'
+import { Home, Calendar, Lightbulb, Zap, Layers, CheckCircle2, Loader2, WifiOff } from 'lucide-react'
+import useStore from '../store/useStore'
 
 const navItems = [
   { to: '/',         label: 'Home',     icon: Home      },
@@ -8,9 +10,62 @@ const navItems = [
   { to: '/ideas',    label: 'Ideas',    icon: Lightbulb },
 ]
 
+// ── Save indicator ─────────────────────────────────────────────────────────
+function SaveIndicator() {
+  const syncStatus = useStore((s) => s.syncStatus)
+  const setSyncStatus = useStore((s) => s.setSyncStatus)
+
+  // Auto-return to 'idle' 3s after a successful save
+  useEffect(() => {
+    if (syncStatus !== 'saved') return
+    const t = setTimeout(() => useStore.setState({ syncStatus: 'idle' }), 3000)
+    return () => clearTimeout(t)
+  }, [syncStatus])
+
+  const configs = {
+    idle: {
+      icon: <CheckCircle2 size={14} />,
+      label: 'All changes saved',
+      className: 'bg-green-50 border-green-200 text-green-600',
+    },
+    saving: {
+      icon: <Loader2 size={14} className="animate-spin" />,
+      label: 'Saving...',
+      className: 'bg-yellow-50 border-yellow-200 text-yellow-600',
+    },
+    saved: {
+      icon: <CheckCircle2 size={14} />,
+      label: 'All changes saved',
+      className: 'bg-green-50 border-green-200 text-green-600',
+    },
+    error: {
+      icon: <WifiOff size={14} />,
+      label: 'Not saved — check connection',
+      className: 'bg-red-50 border-red-200 text-red-600',
+    },
+  }
+
+  const c = configs[syncStatus] ?? configs.idle
+
+  return (
+    <div
+      className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-3 py-2
+                  rounded-xl border-2 font-bold text-xs shadow-card
+                  transition-all duration-300 ${c.className}`}
+    >
+      {c.icon}
+      <span>{c.label}</span>
+    </div>
+  )
+}
+
+// ── Layout ─────────────────────────────────────────────────────────────────
 export default function Layout({ children }) {
   return (
     <div className="flex h-screen overflow-hidden">
+      {/* Save indicator — always visible top-right */}
+      <SaveIndicator />
+
       {/* Sidebar */}
       <aside className="w-56 flex-shrink-0 bg-white border-r border-coral-100 flex flex-col">
         {/* Logo */}
