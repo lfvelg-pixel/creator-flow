@@ -69,8 +69,7 @@ export const ENTRY_TYPES = [
   { id: 'live',      label: 'Live',      emoji: '🚀', color: 'bg-green-100 text-green-700'  },
 ]
 
-// Pipeline stages only — 'live' is auto-created when published, not manually advanced to
-export const STAGE_ORDER = ['idea', 'recording', 'editing', 'scheduled', 'published']
+export const STAGE_ORDER = ['idea', 'recording', 'editing', 'scheduled', 'published', 'live']
 
 export function isDelayed(entry) {
   if (entry.entryType !== 'idea' && entry.entryType !== 'recording') return false

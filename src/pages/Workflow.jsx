@@ -18,7 +18,6 @@ import AddEntryModal from '../components/modals/AddEntryModal'
 const COL_STYLES = {
   idea:      { header: 'bg-yellow-50 border-yellow-200',  dot: 'bg-yellow-400', count: 'bg-yellow-100 text-yellow-700'  },
   recording: { header: 'bg-purple-50 border-purple-200',  dot: 'bg-purple-400', count: 'bg-purple-100 text-purple-700'  },
-  delayed:   { header: 'bg-red-50    border-red-200',     dot: 'bg-red-400',    count: 'bg-red-100    text-red-700'      },
   editing:   { header: 'bg-blue-50   border-blue-200',    dot: 'bg-blue-400',   count: 'bg-blue-100   text-blue-700'    },
   scheduled: { header: 'bg-orange-50 border-orange-200',  dot: 'bg-orange-400', count: 'bg-orange-100 text-orange-700'  },
   published: { header: 'bg-teal-50   border-teal-200',    dot: 'bg-teal-400',   count: 'bg-teal-100   text-teal-700'    },
@@ -27,19 +26,18 @@ const COL_STYLES = {
 
 // ── Editing checklist ──────────────────────────────────────────────────────
 const CHECKLIST_ITEMS = [
-  { id: 'scriptReady',   label: 'Script Ready',    emoji: '📝' },
-  { id: 'ingredients',   label: 'Ingredients',     emoji: '🛒' },
-  { id: 'voiceRecorded', label: 'Voice Recorded',  emoji: '🎙️' },
-  { id: 'captions',      label: 'Captions',        emoji: '💬' },
+  { id: 'scriptReady',   label: 'Script Ready',   emoji: '📝' },
+  { id: 'ingredients',   label: 'Ingredients',    emoji: '🛒' },
+  { id: 'voiceRecorded', label: 'Voice Recorded', emoji: '🎙️' },
+  { id: 'captions',      label: 'Captions',       emoji: '💬' },
 ]
 
 function EditingChecklist({ checklist, onChange }) {
-  const cl = checklist || { scriptReady: false, ingredients: false, voiceRecorded: false }
+  const cl = checklist || { scriptReady: false, ingredients: false, voiceRecorded: false, captions: false }
   const doneCount = CHECKLIST_ITEMS.filter((i) => cl[i.id]).length
 
   return (
     <div className="flex flex-col gap-2 mt-1">
-      {/* Progress bar */}
       <div className="flex items-center justify-between mb-0.5">
         <span className="text-xs font-black text-gray-400 uppercase tracking-wider">Checklist</span>
         <span className="text-xs font-black text-blue-500">{doneCount}/{CHECKLIST_ITEMS.length}</span>
@@ -50,8 +48,6 @@ function EditingChecklist({ checklist, onChange }) {
           style={{ width: `${(doneCount / CHECKLIST_ITEMS.length) * 100}%` }}
         />
       </div>
-
-      {/* Items */}
       {CHECKLIST_ITEMS.map((item) => (
         <button
           key={item.id}
@@ -63,7 +59,6 @@ function EditingChecklist({ checklist, onChange }) {
               : 'bg-warm-gray border-gray-100 text-gray-500 hover:border-blue-200 hover:bg-blue-50/40'
             }`}
         >
-          {/* Thick checkbox */}
           <div className={`w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-all
             ${cl[item.id] ? 'bg-blue-500 border-blue-500' : 'border-gray-300 bg-white'}`}
           >
@@ -81,28 +76,33 @@ function EditingChecklist({ checklist, onChange }) {
 }
 
 // ── Workflow card ──────────────────────────────────────────────────────────
-function WorkflowCard({ entry, columnId, onAdvance, onPublish, onRestore, onDelete, onTrack, onEdit, onChecklistChange }) {
-  const isLive      = entry.entryType === 'live'
-  const isPublished = entry.entryType === 'published'
-  const delayed     = columnId === 'delayed'
-  const hasPerf     = Object.keys(entry.performance || {}).length > 0
+function WorkflowCard({ entry, onAdvance, onDelete, onTrack, onEdit, onChecklistChange }) {
+  const isLive  = entry.entryType === 'live'
+  const delayed = isDelayed(entry)
+  const hasPerf = Object.keys(entry.performance || {}).length > 0
 
   const currentIdx = STAGE_ORDER.indexOf(entry.entryType)
   const nextStage  = currentIdx >= 0 && currentIdx < STAGE_ORDER.length - 1
     ? ENTRY_TYPES.find((t) => t.id === STAGE_ORDER[currentIdx + 1])
     : null
-  const isLastPipelineStage = entry.entryType === 'scheduled'
+
+  const isMovingToLive = nextStage?.id === 'live'
 
   let dateLabel = ''
   try { dateLabel = format(parseISO(entry.date), 'MMM d') } catch {}
 
   return (
     <div className={`bg-white rounded-2xl border-2 p-4 shadow-card flex flex-col gap-3 transition-all hover:shadow-card-hover
-      ${delayed ? 'border-red-100' : isLive ? 'border-green-100' : 'border-gray-100'}`}
+      ${delayed ? 'border-red-200' : isLive ? 'border-green-100' : 'border-gray-100'}`}
     >
       {/* Title + date */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
+          {delayed && (
+            <span className="text-xs font-black text-red-500 bg-red-50 px-2 py-0.5 rounded-lg mb-1 inline-block">
+              ⚠️ Delayed
+            </span>
+          )}
           <p
             className="font-black text-gray-900 text-sm leading-snug cursor-pointer hover:text-coral-500 transition-colors"
             onClick={onEdit}
@@ -126,7 +126,7 @@ function WorkflowCard({ entry, columnId, onAdvance, onPublish, onRestore, onDele
       )}
 
       {/* Editing checklist */}
-      {columnId === 'editing' && (
+      {entry.entryType === 'editing' && (
         <EditingChecklist
           checklist={entry.editingChecklist}
           onChange={onChecklistChange}
@@ -183,7 +183,7 @@ function WorkflowCard({ entry, columnId, onAdvance, onPublish, onRestore, onDele
         {/* Delayed: reschedule */}
         {delayed && (
           <button
-            onClick={onRestore}
+            onClick={onEdit}
             className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold
                        bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors"
           >
@@ -191,26 +191,17 @@ function WorkflowCard({ entry, columnId, onAdvance, onPublish, onRestore, onDele
           </button>
         )}
 
-        {/* Advance to next pipeline stage */}
-        {!isLive && !isPublished && !delayed && nextStage && (
+        {/* Advance to next stage */}
+        {!isLive && !delayed && nextStage && (
           <button
             onClick={onAdvance}
-            className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold
-                       bg-coral-50 text-coral-600 border border-coral-200 hover:bg-coral-100 transition-colors"
+            className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-colors
+              ${isMovingToLive
+                ? 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100'
+                : 'bg-coral-50 text-coral-600 border border-coral-200 hover:bg-coral-100'
+              }`}
           >
             Move to {nextStage.emoji} {nextStage.label}
-            <ArrowRight size={13} />
-          </button>
-        )}
-
-        {/* Final pipeline stage: Publish */}
-        {isLastPipelineStage && !delayed && (
-          <button
-            onClick={onPublish}
-            className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold
-                       bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100 transition-colors"
-          >
-            📢 Mark as Published
             <ArrowRight size={13} />
           </button>
         )}
@@ -257,7 +248,7 @@ function GoLiveModal({ entry, onTrack, onClose }) {
           <h2 className="text-2xl font-black text-gray-900 mb-1">It's Live!</h2>
           <p className="text-gray-500 font-semibold mb-1 text-sm">"{entry.title}"</p>
           <p className="text-gray-400 font-semibold mb-8 text-sm">
-            A Live copy was created. Track how it performs on each platform:
+            Track how it performs on each platform:
           </p>
           <div className="flex flex-col gap-3">
             <button
@@ -310,7 +301,7 @@ function GoLiveModal({ entry, onTrack, onClose }) {
 function EditingView({ entries, updateEntry, onAdvanceToScheduled }) {
   const editingEntries = entries.filter((e) => e.entryType === 'editing')
 
-  const getCl   = (e) => e.editingChecklist || { scriptReady: false, ingredients: false, voiceRecorded: false }
+  const getCl   = (e) => e.editingChecklist || { scriptReady: false, ingredients: false, voiceRecorded: false, captions: false }
   const done    = (e) => CHECKLIST_ITEMS.filter((i) => getCl(e)[i.id]).length
   const isReady = (e) => done(e) === CHECKLIST_ITEMS.length
 
@@ -382,7 +373,6 @@ function EditingView({ entries, updateEntry, onAdvanceToScheduled }) {
               className={`card flex flex-col gap-4 border-2 transition-all hover:shadow-card-hover
                 ${ready ? 'border-green-200 bg-green-50/20' : 'border-coral-100'}`}
             >
-              {/* Title */}
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <h3 className="font-black text-gray-900 text-base leading-snug">{entry.title}</h3>
@@ -397,7 +387,6 @@ function EditingView({ entries, updateEntry, onAdvanceToScheduled }) {
                 )}
               </div>
 
-              {/* Progress bar */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="text-xs font-black text-gray-400 uppercase tracking-wider">Progress</span>
@@ -411,7 +400,6 @@ function EditingView({ entries, updateEntry, onAdvanceToScheduled }) {
                 </div>
               </div>
 
-              {/* Checklist items */}
               <div className="flex flex-col gap-2">
                 {CHECKLIST_ITEMS.map((item) => (
                   <button
@@ -426,7 +414,6 @@ function EditingView({ entries, updateEntry, onAdvanceToScheduled }) {
                         : 'bg-warm-gray border-gray-100 text-gray-500 hover:border-blue-200 hover:bg-blue-50/40'
                       }`}
                   >
-                    {/* Thick checkbox */}
                     <div
                       className={`w-6 h-6 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-all
                         ${cl[item.id] ? 'bg-blue-500 border-blue-500' : 'border-gray-300 bg-white'}`}
@@ -447,7 +434,6 @@ function EditingView({ entries, updateEntry, onAdvanceToScheduled }) {
                 ))}
               </div>
 
-              {/* CTA */}
               {ready ? (
                 <button
                   onClick={() => onAdvanceToScheduled(entry)}
@@ -470,39 +456,31 @@ function EditingView({ entries, updateEntry, onAdvanceToScheduled }) {
 
 // ── Filter tabs ────────────────────────────────────────────────────────────
 const FILTERS = [
-  { id: 'all',      label: 'All',      emoji: '📋' },
-  { id: 'pipeline', label: 'Pipeline', emoji: '🔄' },
-  { id: 'editing',  label: 'Editing',  emoji: '✂️' },
-  { id: 'live',     label: 'Live',     emoji: '🚀' },
+  { id: 'all',           label: 'All',             emoji: '📋' },
+  { id: 'this-week',     label: 'This Week',        emoji: '📅' },
+  { id: 'pipeline',      label: 'Pipeline',         emoji: '🔄' },
+  { id: 'editing',       label: 'Editing',          emoji: '✂️' },
+  { id: 'published-live', label: 'Published & Live', emoji: '📢' },
 ]
 
 // ── Main page ──────────────────────────────────────────────────────────────
 export default function Workflow() {
-  const { entries, updateEntry, deleteEntry, publishEntry } = useStore()
+  const { entries, updateEntry, deleteEntry } = useStore()
   const [modal, setModal]   = useState(null)
   const [filter, setFilter] = useState('all')
-
-  const weekDays     = getWeekDays(new Date())
-  const weekInterval = { start: weekDays[0], end: weekDays[6] }
 
   const allColumns = [
     {
       id: 'idea',
       label: 'Ideas',
       emoji: '💡',
-      entries: entries.filter((e) => e.entryType === 'idea' && !isDelayed(e)),
+      entries: entries.filter((e) => e.entryType === 'idea'),
     },
     {
       id: 'recording',
-      label: 'Recording This Week',
+      label: 'Recording',
       emoji: '🎬',
-      entries: entries.filter((e) => e.entryType === 'recording' && !isDelayed(e)),
-    },
-    {
-      id: 'delayed',
-      label: 'Delayed',
-      emoji: '⚠️',
-      entries: entries.filter((e) => isDelayed(e)),
+      entries: entries.filter((e) => e.entryType === 'recording'),
     },
     {
       id: 'editing',
@@ -530,32 +508,38 @@ export default function Workflow() {
     },
   ]
 
-  const visibleColumns = filter === 'pipeline'
-    ? allColumns.filter((c) => c.id !== 'live')
-    : filter === 'live'
-    ? allColumns.filter((c) => c.id === 'live')
-    : allColumns
+  let visibleColumns = allColumns
+  if (filter === 'pipeline') {
+    visibleColumns = allColumns.filter((c) => !['published', 'live'].includes(c.id))
+  } else if (filter === 'published-live') {
+    visibleColumns = allColumns.filter((c) => ['published', 'live'].includes(c.id))
+  } else if (filter === 'this-week') {
+    const weekDays = getWeekDays(new Date())
+    const interval = { start: weekDays[0], end: weekDays[6] }
+    visibleColumns = allColumns.map((col) => ({
+      ...col,
+      entries: col.entries.filter((e) => {
+        try { return isWithinInterval(parseISO(e.date), interval) }
+        catch { return false }
+      }),
+    }))
+  }
 
   const advanceStage = (entry) => {
     const idx = STAGE_ORDER.indexOf(entry.entryType)
     if (idx >= 0 && idx < STAGE_ORDER.length - 1) {
-      updateEntry(entry.id, { entryType: STAGE_ORDER[idx + 1] })
+      const nextType = STAGE_ORDER[idx + 1]
+      updateEntry(entry.id, { entryType: nextType })
+      if (nextType === 'live') {
+        setModal({ type: 'golive', entry: { ...entry, entryType: 'live' } })
+      }
     }
   }
 
-  const handlePublish = (entry) => {
-    // Move to published in the pipeline
-    updateEntry(entry.id, { entryType: 'published' })
-    // Auto-create live copy, then open GoLive modal
-    publishEntry(entry, (liveEntry) => {
-      setModal({ type: 'golive', entry: liveEntry })
-    })
-  }
-
-  const totalEntries  = entries.length
-  const liveCount     = entries.filter((e) => e.entryType === 'live').length
+  const totalEntries   = entries.filter((e) => e.entryType !== 'live').length
+  const liveCount      = entries.filter((e) => e.entryType === 'live').length
   const publishedCount = entries.filter((e) => e.entryType === 'published').length
-  const delayedCount  = entries.filter((e) => isDelayed(e)).length
+  const delayedCount   = entries.filter(isDelayed).length
 
   return (
     <div className="p-8 min-h-screen flex flex-col">
@@ -563,7 +547,7 @@ export default function Workflow() {
       <div className="mb-6">
         <h1 className="text-3xl font-black text-gray-900">📋 Workflow</h1>
         <p className="text-gray-400 font-semibold mt-1">
-          Track every piece of content from idea to published
+          Track every piece of content from idea to live
         </p>
       </div>
 
@@ -624,17 +608,14 @@ export default function Workflow() {
           onAdvanceToScheduled={(entry) => updateEntry(entry.id, { entryType: 'scheduled' })}
         />
       ) : (
-        <div className={`flex gap-4 pb-4 ${filter === 'live' ? 'flex-col max-w-2xl' : 'overflow-x-auto'}`}>
+        <div className="flex gap-4 overflow-x-auto pb-4">
           {visibleColumns.map((col) => (
             <Column key={col.id} col={col}>
               {col.entries.map((entry) => (
                 <WorkflowCard
                   key={entry.id}
                   entry={entry}
-                  columnId={col.id}
                   onAdvance={() => advanceStage(entry)}
-                  onPublish={() => handlePublish(entry)}
-                  onRestore={() => setModal({ type: 'edit', entry })}
                   onDelete={() => deleteEntry(entry.id)}
                   onTrack={(platform) => setModal({ type: 'perf', entry, platform })}
                   onEdit={() => setModal({ type: 'edit', entry })}
