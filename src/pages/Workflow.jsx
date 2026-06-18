@@ -469,42 +469,44 @@ export default function Workflow() {
   const [modal, setModal]   = useState(null)
   const [filter, setFilter] = useState('all')
 
+  const byDate = (a, b) => (a.date || '').localeCompare(b.date || '')
+
   const allColumns = [
     {
       id: 'idea',
       label: 'Ideas',
       emoji: '💡',
-      entries: entries.filter((e) => e.entryType === 'idea'),
+      entries: entries.filter((e) => e.entryType === 'idea').sort(byDate),
     },
     {
       id: 'recording',
       label: 'Recording',
       emoji: '🎬',
-      entries: entries.filter((e) => e.entryType === 'recording'),
+      entries: entries.filter((e) => e.entryType === 'recording').sort(byDate),
     },
     {
       id: 'editing',
       label: 'Editing',
       emoji: '✂️',
-      entries: entries.filter((e) => e.entryType === 'editing'),
+      entries: entries.filter((e) => e.entryType === 'editing').sort(byDate),
     },
     {
       id: 'scheduled',
       label: 'Scheduled',
       emoji: '📅',
-      entries: entries.filter((e) => e.entryType === 'scheduled'),
+      entries: entries.filter((e) => e.entryType === 'scheduled').sort(byDate),
     },
     {
       id: 'published',
       label: 'Published',
       emoji: '📢',
-      entries: entries.filter((e) => e.entryType === 'published'),
+      entries: entries.filter((e) => e.entryType === 'published').sort(byDate),
     },
     {
       id: 'live',
       label: 'Live',
       emoji: '🚀',
-      entries: entries.filter((e) => e.entryType === 'live'),
+      entries: entries.filter((e) => e.entryType === 'live').sort(byDate),
     },
   ]
 
