@@ -26,6 +26,7 @@ const COL_STYLES = {
 
 // ── Editing checklist ──────────────────────────────────────────────────────
 const CHECKLIST_ITEMS = [
+  { id: 'videoReady',    label: 'Video Ready',    emoji: '🎥' },
   { id: 'scriptReady',   label: 'Script Ready',   emoji: '📝' },
   { id: 'ingredients',   label: 'Ingredients',    emoji: '🛒' },
   { id: 'voiceRecorded', label: 'Voice Recorded', emoji: '🎙️' },
@@ -33,7 +34,7 @@ const CHECKLIST_ITEMS = [
 ]
 
 function EditingChecklist({ checklist, onChange }) {
-  const cl = checklist || { scriptReady: false, ingredients: false, voiceRecorded: false, captions: false }
+  const cl = checklist || { videoReady: false, scriptReady: false, ingredients: false, voiceRecorded: false, captions: false }
   const doneCount = CHECKLIST_ITEMS.filter((i) => cl[i.id]).length
 
   return (
@@ -301,7 +302,7 @@ function GoLiveModal({ entry, onTrack, onClose }) {
 function EditingView({ entries, updateEntry, onAdvanceToScheduled }) {
   const editingEntries = entries.filter((e) => e.entryType === 'editing')
 
-  const getCl   = (e) => e.editingChecklist || { scriptReady: false, ingredients: false, voiceRecorded: false, captions: false }
+  const getCl   = (e) => e.editingChecklist || { videoReady: false, scriptReady: false, ingredients: false, voiceRecorded: false, captions: false }
   const done    = (e) => CHECKLIST_ITEMS.filter((i) => getCl(e)[i.id]).length
   const isReady = (e) => done(e) === CHECKLIST_ITEMS.length
 

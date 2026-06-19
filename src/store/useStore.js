@@ -21,7 +21,7 @@ const fromEntry = (row) => ({
   entryType: row.entry_type,
   platforms: row.platforms || ['youtube', 'tiktok', 'instagram'],
   performance: row.performance || {},
-  editingChecklist: row.editing_checklist || { scriptReady: false, ingredients: false, voiceRecorded: false, captions: false },
+  editingChecklist: row.editing_checklist || { videoReady: false, scriptReady: false, ingredients: false, voiceRecorded: false, captions: false },
   createdAt: row.created_at,
 })
 
@@ -38,7 +38,7 @@ const useStore = create((set, get) => ({
   _begin: () => set((s) => ({ pendingOps: s.pendingOps + 1, syncStatus: 'saving' })),
   _done: (error) => set((s) => {
     const pending = Math.max(0, s.pendingOps - 1)
-    if (error) console.error('CreatorFlow save error:', error)
+    if (error) console.error('CreatorFlow save error:', error?.message, error?.details, error?.code)
     return {
       pendingOps: pending,
       syncStatus: error ? 'error' : pending === 0 ? 'saved' : 'saving',
