@@ -457,10 +457,9 @@ function EditingView({ entries, updateEntry, onAdvanceToScheduled }) {
 
 // ── Filter tabs ────────────────────────────────────────────────────────────
 const FILTERS = [
-  { id: 'all',           label: 'All',             emoji: '📋' },
-  { id: 'this-week',     label: 'This Week',        emoji: '📅' },
-  { id: 'pipeline',      label: 'Pipeline',         emoji: '🔄' },
-  { id: 'editing',       label: 'Editing',          emoji: '✂️' },
+  { id: 'all',            label: 'All',             emoji: '📋' },
+  { id: 'this-week',      label: 'This Week',        emoji: '📅' },
+  { id: 'pipeline',       label: 'Pipeline',         emoji: '🔄' },
   { id: 'published-live', label: 'Published & Live', emoji: '📢' },
 ]
 
@@ -545,7 +544,7 @@ export default function Workflow() {
   const delayedCount   = entries.filter(isDelayed).length
 
   return (
-    <div className="p-8 min-h-screen flex flex-col">
+    <div className="p-4 md:p-8 min-h-screen flex flex-col">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-black text-gray-900">📋 Workflow</h1>
@@ -604,12 +603,6 @@ export default function Workflow() {
             <p className="text-gray-400 font-semibold">Add entries from the Calendar or Ideas pages to get started.</p>
           </div>
         </div>
-      ) : filter === 'editing' ? (
-        <EditingView
-          entries={entries}
-          updateEntry={updateEntry}
-          onAdvanceToScheduled={(entry) => updateEntry(entry.id, { entryType: 'scheduled' })}
-        />
       ) : (
         <div className="flex gap-4 overflow-x-auto pb-4">
           {visibleColumns.map((col) => (

@@ -142,11 +142,11 @@ export default function Calendar() {
   }
 
   return (
-    <div className="p-8 min-h-screen flex flex-col">
+    <div className="p-4 md:p-8 min-h-screen flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-3xl font-black text-gray-900">
+          <h1 className="text-xl md:text-3xl font-black text-gray-900">
             {format(currentDate, 'MMMM yyyy')}
           </h1>
           <p className="text-gray-400 font-semibold mt-0.5">

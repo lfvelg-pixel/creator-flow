@@ -30,11 +30,11 @@ export default function Ideas() {
   const typeInfo = (type) => IDEA_TYPES.find((t) => t.id === type)
 
   return (
-    <div className="p-8 min-h-screen">
+    <div className="p-4 md:p-8 min-h-screen">
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-black text-gray-900">💡 Ideas Bank</h1>
+          <h1 className="text-2xl md:text-3xl font-black text-gray-900">💡 Ideas Bank</h1>
           <p className="text-gray-400 font-semibold mt-1">
             {ideas.length} idea{ideas.length !== 1 ? 's' : ''} stored
           </p>
@@ -46,7 +46,7 @@ export default function Ideas() {
       </div>
 
       {/* Search + filter */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex flex-wrap items-center gap-3 mb-6">
         <div className="relative flex-1 max-w-sm">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300" />
           <input

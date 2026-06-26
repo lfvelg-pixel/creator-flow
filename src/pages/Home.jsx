@@ -49,28 +49,29 @@ export default function Home() {
   }
 
   return (
-    <div className="p-8 min-h-screen">
+    <div className="p-4 md:p-8 min-h-screen">
       {/* Header */}
-      <div className="flex items-start justify-between mb-8">
+      <div className="flex items-start justify-between mb-5">
         <div>
-          <h1 className="text-3xl font-black text-gray-900">
+          <h1 className="text-2xl md:text-3xl font-black text-gray-900">
             {greeting()}, Creator! 👋
           </h1>
-          <p className="text-gray-400 font-semibold mt-1">
+          <p className="text-gray-400 font-semibold mt-1 text-sm">
             {format(today, "EEEE, MMMM d, yyyy")}
           </p>
         </div>
         <button
           onClick={() => setModal({ type: 'add' })}
-          className="btn-primary"
+          className="btn-primary text-sm"
         >
-          <Plus size={18} />
-          New Entry
+          <Plus size={16} />
+          <span className="hidden sm:inline">New Entry</span>
+          <span className="sm:hidden">Add</span>
         </button>
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-3 gap-3 mb-5">
         <div className="card text-center">
           <div className="text-4xl font-black text-coral-400">{totalThisWeek}</div>
           <div className="text-sm font-bold text-gray-400 mt-1">Entries This Week</div>
@@ -124,7 +125,8 @@ export default function Home() {
       </p>
 
       {/* Week grid */}
-      <div className="grid grid-cols-7 gap-3">
+      <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+      <div className="grid grid-cols-7 gap-2 min-w-[560px]">
         {weekDays.map((day) => {
           const dayEntries = getEntriesForDay(day)
           const todayFlag = isToday(day)
@@ -182,6 +184,8 @@ export default function Home() {
           )
         })}
       </div>
+
+      </div>{/* end scroll wrapper */}
 
       {/* Tip when no entries */}
       {totalThisWeek === 0 && (

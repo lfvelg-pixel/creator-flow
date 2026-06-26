@@ -4,6 +4,7 @@ import Layout from './components/Layout'
 import Home from './pages/Home'
 import Workflow from './pages/Workflow'
 import Calendar from './pages/Calendar'
+import Editing from './pages/Editing'
 import Ideas from './pages/Ideas'
 import useStore from './store/useStore'
 
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/workflow" element={<Workflow />} />
           <Route path="/calendar" element={<Calendar />} />
+          <Route path="/editing" element={<Editing />} />
           <Route path="/ideas" element={<Ideas />} />
         </Routes>
       </Layout>
